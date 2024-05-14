@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Minesweeper</title>
+        <link rel="stylesheet" href="style.css">
+        <script>
+            
+            function createBoard(width, height){
+                let boxWidth = width;
+                let boxHeight = height;
+                let numTiles = 100;
+                let numTilesX = 10;
+                let numTilesY = 10;
+                let numBombs = 5;
+                let numNonBombs = 95;
+                let randomBombs = [];
+                let randomBombsX = [];
+                let randomBombsY = [];
+                let bombIDs = [];
+
+                
+                function getRandomNumber(max) {
+                    return Math.floor(Math.random() * max);
+                }
+
+
+                //definirajmo parametre za igro
+                if(boxWidth == 300){
+                    numTiles = 25;
+                    numTilesX = 5;
+                    numTilesY = 5;
+                    numBombs = 3;
+                    numNonBombs = numTiles - numBombs;
+                }else if(boxWidth == 600){
+                    numTiles = 100;
+                    numTilesX = 10;
+                    numTilesY = 10;
+                    numBombs = 15;
+                    numNonBombs = numTiles - numBombs;
+                }
+
+                //pushamo v prazen array numBombs random stevil med 0 in st. polj
+                //preveri za duplikate
+                while(randomBombs.length<numBombs){
+                    let randomNumber = getRandomNumber(numTiles);
+                    if(!randomBombs.includes(randomNumber)){
+                        randomBombs.push(randomNumber);
+                    }
+                }
+                
+                //generiramo igralno polje
+                let generatedBombsCount = 0;
+                document.write(`<div id="outsideBox" style="height: ${boxHeight}px; width: ${boxWidth}px;" class="box">`);
+                for (let i = 0; i < numTilesX; i++){
+                    for(let j = 0; j < numTilesY; j++){
+                        if(randomBombs.includes(generatedBombsCount)){
+                            document.write(`<div id="${i},${j}" class="tileBomb" onclick="showTileFun(${i},${j},${numNonBombs},${numTilesX},${numTilesY})" oncontextmenu="rightClick(event, ${i}, ${j})" ondragstart="return false"></div>`);
+                            randomBombsX[generatedBombsCount] = i;
+                            randomBombsY[generatedBombsCount] = j;
+                            let bomb = document.getElementById(i+","+j);
+                        }else{
+                            document.write(`<div id="${i},${j}" class="tile" onclick="showTileFun(${i},${j},${numNonBombs},${numTilesX},${numTilesY})" oncontextmenu="rightClick(event, ${i}, ${j})" ondragstart="return false"></div>`);
+                        }
+                        generatedBombsCount++;
+                    }
+                }
+
+                //v okolico bomb spremenimo polja v polja s stevilko 1
+                for(let i = 0; i < randomBombsX.length; i++){
+                    let currentX = randomBombsX[i];
+                    let currentY = randomBombsY[i];
+
+                    for(let x = currentX-1; x <= currentX+1; x++){
+                                for(let y = currentY-1; y <= currentY+1; y++){
+                                    let tile = document.getElementById(x+","+y);
+                                    try{
+                                        tile.classList.replace("tile","tileNumber1");
+                                    }catch(e){}
+                                    
+                                    
+                                }
+                        }  
+                }
+
+                //polja s stevilko 1 shranimo v array
+                let numberTilesArray = document.querySelectorAll(".tileNumber1");
+                let numberTilesArrayX = [];
+                let numberTilesArrayY = [];
+
+                //shranimo v arraya x in y pozicije teh polj
+                for(let i = 0; i < numberTilesArray.length; i++){
+                    let trenutniTile = numberTilesArray[i];
+                    let trenutniID = trenutniTile.id
+                    let trenutniXinY = trenutniID.split(",")
+                    numberTilesArrayX[i] = trenutniXinY[0];
+                    numberTilesArrayY[i] = trenutniXinY[1];
+                }
+                //pretvorimo vsebino polj iz stringov v inte
+                let intArrayX = numberTilesArrayX.map(str => parseInt(str));
+                let intArrayY = numberTilesArrayY.map(str => parseInt(str));
+
+                //za vsako od teh polj preverimo koliko bomb imajo v njihovi okolici
+                //glede na njihov currentBombCounter nastavimo jim class oz. stevilko
+                for(let i = 0; i < numberTilesArray.length; i++){
+                    let currentBombCount = 0;
+                    for(let x = (intArrayX[i]-1); x <= (intArrayX[i]+1); x++){
+                        for(let y = (intArrayY[i]-1); y <= (intArrayY[i]+1); y++){
+                            if(x >= 0 && y >= 0 && x < numTilesX && y < numTilesY){
+                                    let checkBombTile = document.getElementById(x+","+y);
+                                        if(checkBombTile.classList.contains("tileBomb")){
+                                            currentBombCount++;
+                                        }
+                                    }
+                        }
+                        
+                    }
+
+                    let changeTileNumber = document.getElementById(intArrayX[i]+","+intArrayY[i]);
+                    if(currentBombCount == 2){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber2");
+                        changeTileNumber.textContent = "2";
+                    }else if(currentBombCount == 3){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber3");
+                        changeTileNumber.textContent = "3";
+                    }else if(currentBombCount == 4){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber4");
+                        changeTileNumber.textContent = "4";
+                    }else if(currentBombCount == 5){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber5");
+                        changeTileNumber.textContent = "5";
+                    }else if(currentBombCount == 6){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber6");
+                        changeTileNumber.textContent = "6";
+                    }else if(currentBombCount == 7){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber7");
+                        changeTileNumber.textContent = "7";
+                    }else if(currentBombCount == 8){
+                        changeTileNumber.classList.replace("tileNumber1","tileNumber8");
+                        changeTileNumber.textContent = "8";
+                    }
+
+                    if(changeTileNumber.classList.contains("tileNumber1")){
+                        changeTileNumber.textContent = "1";
+                    }
+
+                    currentBombCount = 0;
+                }
+                
+                  
+                document.write("</div>");
+                
+                //vsa polja skrijmo
+                for(let i = 0; i < numTilesX ;i++){
+                    for(let j = 0; j < numTilesY ;j++){
+                        let hideTile = document.getElementById(i+","+j);
+                        hideTile.style.backgroundColor = "black";        
+                    }
+                }
+            }
+
+            
+            let clicked1 = 0;
+            let tilesRevealedGlobalCount = 0;
+            function showTileFun(i, j, numNonBombs, numTilesX, numTilesY){
+                    //zacni cas ko odkrijemo prvo polje
+                    if(clicked1 == 0){
+                        watchStart();
+                        clicked1++;
+                    }
+
+                    //odstranimo background color, da odkrijemo polje
+                    let showTile = document.getElementById(i+","+j);
+                    if(showTile.style.backgroundColor == "black"){
+                        let maxX = numTilesX;
+                        let maxY = numTilesY;
+                        let tilesLeft = numNonBombs;
+                        showTile.style.backgroundColor = "";
+                        let parent = document.getElementById("outsideBox");
+                        //ce je polje bomba
+                        //prikazi endscreen 
+                        //ustavi cas
+                        if(showTile.classList.contains("tileBomb")){
+                            while(parent.firstChild){
+                                parent.removeChild(parent.firstChild)
+                            }
+                            let endScreen = document.createElement("div");
+                            parent.appendChild(endScreen);
+                            endScreen.id = "endScreenLost";
+                            let topHalf = document.createElement("div");
+                            let bottomHalf = document.createElement("div");
+                            endScreen.appendChild(topHalf);
+                            endScreen.appendChild(bottomHalf);
+                            topHalf.id = "topHalf";
+                            bottomHalf.id = "bottomHalf";
+
+                            let restartButton = document.createElement("button");
+                            bottomHalf.appendChild(restartButton);
+                            restartButton.id = "restartButton";
+                            restartButton.addEventListener("click", restart);
+                            restartButton.textContent = "RESTART"
+
+                            let endScreenMessage = document.createElement("div");
+                            topHalf.appendChild(endScreenMessage);
+                            endScreenMessage.id = "endScreenMessage";
+                            endScreenMessage.textContent = "YOU LOST";
+
+                            watchStop();
+                        }else{
+                            //ce polje ni bomba
+                            //povecaj stevilo odkritih polj
+                            tilesRevealedGlobalCount++;
+
+                            //ce je polje prazno
+                            //klici funkcijo checkAnotherTile nad okoliskimi polji
+                            if(showTile.classList.contains("tile")){
+                                for(let x = i-1; x <= i+1 ;x++){
+                                    for(let y = j-1; y <= j+1 ;y++){
+                                        if(x >= 0 && y >= 0 && x < maxX && y < maxY){
+                                            checkAnotherTile(x, y, tilesLeft, maxX, maxY);
+                                        }
+                                    }
+                                }
+                                
+
+                            }
+
+                            //ce so vsa polja odkrita
+                            //prikazi endscreen
+                            //ustavi cas
+                            if(tilesRevealedGlobalCount == numNonBombs){
+                                while(parent.firstChild){
+                                parent.removeChild(parent.firstChild)
+                                }
+
+                                let endScreen = document.createElement("div");
+                                parent.appendChild(endScreen);
+                                endScreen.id = "endScreenLost";
+                                let topHalf = document.createElement("div");
+                                let bottomHalf = document.createElement("div");
+                                endScreen.appendChild(topHalf);
+                                endScreen.appendChild(bottomHalf);
+                                topHalf.id = "topHalf";
+                                bottomHalf.id = "bottomHalf";
+
+                                let restartButton = document.createElement("button");
+                                bottomHalf.appendChild(restartButton);
+                                restartButton.id = "restartButton";
+                                restartButton.addEventListener("click", restart);
+                                restartButton.textContent = "RESTART";
+
+                                let endScreenMessage = document.createElement("div");
+                                topHalf.appendChild(endScreenMessage);
+                                endScreenMessage.id = "endScreenMessage";
+                                endScreenMessage.textContent = "YOU WON";
+
+                                watchStop();
+                            }
+                        }
+                    }
+                }
+                
+                //ce je polje v okolici prazno ali ostevilceno in se neodkrito, ga odrkij
+                function checkAnotherTile(i, j, numNonBombs, numTilesX, numTilesY){
+                let checkTile = document.getElementById(i+","+j);
+                let checkStyle = checkTile.style.backgroundColor;
+                let maxX = numTilesX;
+                let maxY = numTilesY;
+                if(checkTile.classList.value.match(/tile|tileNumber[1-8]/) && checkStyle == "black"){        
+                    showTileFun(i, j, numNonBombs, maxX, maxY);
+                }
+            }
+
+            
+            //zastavice
+            let flagCounter = 0;
+            let bombs = 0;
+            let called = false;
+            function rightClick(event, i, j) {
+                    event.preventDefault();
+                    let flagTile = document.getElementById(i+","+j);
+                    let flagStyle = flagTile.style.backgroundColor;
+
+                    
+                    if(!called){
+                        let parent = flagTile.parentElement
+                        let children = parent.children;
+                        let childrenArray = Array.from(children);
+                        
+                        for(let i = 0; i < parent.childElementCount; i++){
+                            if(childrenArray[i].classList.contains("tileBomb")){
+                            bombs++;
+                            }
+                        }   
+                        document.getElementById("flags").innerHTML = "0/"+bombs;
+                        called = true;
+                    }
+                    
+                    
+                    if (flagStyle == "crimson"){                              
+                        flagTile.style.backgroundColor = "black";
+                        flagTile.style.color = "black";
+                        flagCounter--;
+                        document.getElementById("flags").innerHTML = flagCounter+"/"+bombs;
+                    }else if(flagStyle != "" && flagCounter < bombs){
+                        flagTile.style.backgroundColor = "crimson";
+                        flagTile.style.color = "crimson";
+                        flagCounter++;
+                        document.getElementById("flags").innerHTML = flagCounter+"/"+bombs;
+                    }
+                }
+
+            //refreshaj stran ce kliknes restart
+            function restart(){
+                location.reload();
+            }
+
+
+            //cas
+            //koda iz vaj
+            let watchValue = 0;
+            let watchSeconds = 0;
+            let watchMinutes = 0;
+            let watchRunning = false;
+            let watchInterval = undefined;
+            let watchInterval2 = undefined;
+            let watchInterval3 = undefined;
+
+            function watchIncrease(){
+                watchSeconds++;
+                if(watchSeconds%10==0){
+                    watchValue++;
+                    watchSeconds=0;
+                    if(watchValue%60==0){
+                    watchMinutes++;
+                    watchValue=0;
+                    watchSeconds=0;
+                    }
+                }
+                if(watchValue<10 && watchMinutes<10){
+                    document.getElementById("watch").innerHTML = "0"+watchMinutes.toString()+":0"+watchValue.toString()+"."+watchSeconds.toString();
+                }else if(watchMinutes<10){
+                    document.getElementById("watch").innerHTML = "0"+watchMinutes.toString()+":"+watchValue.toString()+"."+watchSeconds.toString();
+                }else{
+                    document.getElementById("watch").innerHTML = watchMinutes.toString()+":"+watchValue.toString()+"."+watchSeconds.toString();
+
+                }
+            }
+
+            function watchStart(){
+                    watchInterval = window.setInterval(watchIncrease, 1000);
+                    watchInterval2 = window.setInterval(watchIncrease, 100);
+                    watchInterval3 = window.setInterval(watchIncrease, 60000);
+                    watchRunning = true;
+                    
+            }
+
+            function watchStop(){
+                if(watchRunning){
+                window.clearInterval(watchInterval);
+                window.clearInterval(watchInterval2);
+                window.clearInterval(watchInterval3);
+                watchRunning = false;
+                }
+            }
+
+        </script>
+    </head>
+    <body>
+        <ul class="navbar">
+            <li><a href="WelcomePage.html">Welcome</a>
+            <li><a href="Minesweeper.html">Game</a>
+            <li><a href="Rules.html">Rules</a>
+          </ul>
+          <br>
+          <br>
+          <br>
+          <script>
+            createBoard(600,600);
+          </script>
+          <div id="watch" >00:00.0</div>
+          <div id="flags" >0/0</div>
+          <div id="outsideRestartDiv">
+            <button id="restartButtonOutside" onclick="restart()">RESTART</button>
+          </div>
+          
+    </body>
+    
+</html>
